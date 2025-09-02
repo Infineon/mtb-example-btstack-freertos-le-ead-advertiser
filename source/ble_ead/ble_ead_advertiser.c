@@ -61,13 +61,19 @@ void ble_ead_advertiser_init(void)
     p = adv_to_encrypt;
     UINT32_TO_STREAM(p, randomizer); // copy 4 bytes of the count as randomizer
 
-    mic = wiced_bt_ble_encrypt_adv_packet(ble_ead_key_material.session_key, // session key
+    result = wiced_bt_ble_encrypt_adv_packet(ble_ead_key_material.session_key, // session key
                                          ble_ead_key_material.iv,          // iv
                                          adv_to_encrypt,               // address of randomizer
                                          adv_plaintext,                // plaintext to be encrypted
                                          adv_to_encrypt+ 5,            // address to copy encrypted data, same length as of plaintext
-                                         sizeof(adv_plaintext));       // length of the plaintext
+                                         sizeof(adv_plaintext),        // length of the plaintext
+                                            &mic);
 
+    if (WICED_BT_SUCCESS != result)
+    {
+        printf("wiced_bt_ble_encrypt_adv_packet failed to encrypt adv packet!\n");
+        CY_ASSERT(0);
+    }
     printf("\n[%s] mic:0x%lx, encypted:", __FUNCTION__, mic);
     print_array(adv_to_encrypt, sizeof(adv_to_encrypt) - 4);
 
